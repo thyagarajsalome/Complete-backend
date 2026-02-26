@@ -16,16 +16,16 @@ app.post('/create-post', upload.single('image'), async (req, res) => {
     console.log(req.file);
     const result = await uploadFile(req.file.buffer);
    
-
-    const post =  await PostModel.create({
-        image: result.url,
-        caption: req.body.caption
+app.get ("/posts", async (req, res) => {
+    const posts = await PostModel.find();
+    return res.status(200).json({
+        success: true,
+        posts
     })
+    
+})
 
-   res.status(201).json({
-    message: "Post created successfully",
-    post
-   })
+   
 });
 
 
