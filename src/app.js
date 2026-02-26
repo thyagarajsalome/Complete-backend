@@ -8,26 +8,47 @@ app.use(express.json());
 
 const upload = multer({ storage: multer.memoryStorage() });
 
-
-
-
+// POST: Create a new post
 app.post('/create-post', upload.single('image'), async (req, res) => {
-    console.log(req.body);
-    console.log(req.file);
-    const result = await uploadFile(req.file.buffer);
-   
-app.get ("/posts", async (req, res) => {
-    const posts = await PostModel.find();
-    return res.status(200).json({
-        success: true,
-        posts
-    })
-    
-})
+    try {
+        console.log(req.body);
+        console.log(req.file);
+        
+        if (!req.file) {
+            return res.status(400).json({ success: false, message: "No image provided" });
+        }
 
-   
+        // Upload to ImageKit
+        const result = await uploadFile(req.file.buffer);
+       
+        // Save to Database
+        const newPost = await PostModel.create({
+            image: result.url, // Save the ImageKit URL
+            caption: req.body.caption || ''
+        });
+
+        return res.status(201).json({
+            success: true,
+            post: newPost
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ success: false, error: error.message });
+    }
 });
 
-
+// GET: Fetch all posts
+app.get("/posts", async (req, res) => {
+    try {
+        const posts = await PostModel.find();
+        return res.status(200).json({
+            success: true,
+            posts
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ success: false, error: error.message });
+    }
+});
 
 module.exports = app;
